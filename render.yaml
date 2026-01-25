@@ -1,0 +1,50 @@
+services:
+  # PostgreSQL Database
+  - type: pserv
+    name: visual-editor-db
+    runtime: docker
+    plan: free
+    region: frankfurt
+    
+  # Backend API
+  - type: web
+    name: visual-editor-backend
+    runtime: node
+    region: frankfurt
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DB_HOST
+        fromDatabase:
+          name: visual-editor-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: visual-editor-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: visual-editor-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: visual-editor-db
+          property: user
+      - key: DB_PASS
+        fromDatabase:
+          name: visual-editor-db
+          property: password
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: PROTECT_ROUTES
+        value: keycloak
+      - key: ADMIN_ROLE
+        value: admin
+      - key: TEACHER_ROLE
+        value: teacher
+    healthCheckPath: /health

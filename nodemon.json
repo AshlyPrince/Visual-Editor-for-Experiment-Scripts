@@ -1,0 +1,17 @@
+{
+  "watch": ["src"],
+  "ext": "js,json",
+  "ignore": ["node_modules", "*.test.js"],
+  "delay": 2000,
+  "execMap": {
+    "js": "node"
+  },
+  "nodeArgs": ["-r", "dotenv/config"],
+  "env": {
+    "NODE_ENV": "development",
+    "DOTENV_CONFIG_PATH": ".env"
+  },
+  "restartable": "rs",
+  "verbose": true,
+  "legacyWatch": true
+}
