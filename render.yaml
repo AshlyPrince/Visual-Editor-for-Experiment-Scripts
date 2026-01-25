@@ -5,20 +5,6 @@ databases:
 
 services:
   - type: web
-    name: keycloak
-    runtime: docker
-    region: frankfurt
-    plan: starter
-    dockerfilePath: ./Dockerfile.keycloak
-    dockerContext: .
-    envVars:
-      - key: KEYCLOAK_ADMIN
-        value: admin
-      - key: KEYCLOAK_ADMIN_PASSWORD
-        generateValue: true
-    healthCheckPath: /health/ready
-
-  - type: web
     name: visual-editor-backend
     runtime: node
     region: frankfurt
