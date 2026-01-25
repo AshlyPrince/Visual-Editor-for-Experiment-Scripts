@@ -1,12 +1,9 @@
-services:
-  # PostgreSQL Database
-  - type: pserv
-    name: visual-editor-db
-    runtime: docker
+databases:
+  - name: visual-editor-db
     plan: free
     region: frankfurt
-    
-  # Backend API
+
+services:
   - type: web
     name: visual-editor-backend
     runtime: node
