@@ -1,0 +1,10 @@
+FROM quay.io/keycloak/keycloak:26.0.7
+
+COPY keycloak/myrealm-import.json /opt/keycloak/data/import/myrealm-realm.json
+
+ENV KC_PROXY=edge
+ENV KC_HOSTNAME_STRICT=false
+ENV KC_HTTP_ENABLED=true
+
+ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
+CMD ["start-dev", "--import-realm"]
