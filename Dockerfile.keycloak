@@ -3,16 +3,13 @@ FROM quay.io/keycloak/keycloak:26.0.7
 # Copy realm import file
 COPY keycloak/myrealm-import.json /opt/keycloak/data/import/myrealm-realm.json
 
-# Environment variables for Render
+# Environment variables
 ENV KC_PROXY=edge
 ENV KC_HOSTNAME_STRICT=false
 ENV KC_HTTP_ENABLED=true
 ENV KC_HEALTH_ENABLED=true
-ENV KC_DB=postgres
+ENV KC_DB=dev-file
 
-# Expose port 10000 (Render default)
-EXPOSE 10000
-
-# Start Keycloak in development mode
+# Start Keycloak in development mode (no build needed)
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
-CMD ["start", "--optimized", "--import-realm", "--http-port=10000"]
+CMD ["start-dev", "--import-realm"]

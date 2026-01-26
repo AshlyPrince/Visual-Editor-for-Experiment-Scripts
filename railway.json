@@ -5,8 +5,6 @@
     "dockerfilePath": "Dockerfile.keycloak"
   },
   "deploy": {
-    "startCommand": "/opt/keycloak/bin/kc.sh start-dev --import-realm --http-port=$PORT",
-    "healthcheckPath": "/health/live",
     "healthcheckTimeout": 600,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
