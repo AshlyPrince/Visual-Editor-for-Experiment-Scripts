@@ -21,9 +21,10 @@ COPY keycloak/myrealm-import.json /opt/keycloak/data/import/
 # Set environment variables
 ENV KC_DB=dev-file
 ENV KC_HOSTNAME_STRICT=false
+ENV KC_HOSTNAME_STRICT_HTTPS=false
 ENV KC_HTTP_ENABLED=true
 ENV KC_PROXY=edge
 ENV KEYCLOAK_ADMIN=admin
 
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
-CMD ["start", "--optimized", "--import-realm"]
+CMD ["start", "--optimized", "--import-realm", "--hostname-url=https://visual-editor-keycloak.onrender.com"]
