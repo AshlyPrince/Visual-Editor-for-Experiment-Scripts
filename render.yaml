@@ -32,7 +32,7 @@ services:
       - key: KC_DB
         value: dev-file
       - key: JAVA_OPTS_APPEND
-        value: "-Djava.net.preferIPv4Stack=true -Xms256m -Xmx512m"
+        value: "-Djava.net.preferIPv4Stack=true -Xms512m -Xmx1024m"
 
   # Backend API Service
   - type: web
