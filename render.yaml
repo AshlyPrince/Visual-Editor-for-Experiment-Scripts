@@ -31,6 +31,8 @@ services:
         value: "false"
       - key: KC_HOSTNAME_URL
         value: "https://visual-editor-keycloak.onrender.com"
+      - key: KC_PROXY_HEADERS
+        value: "xforwarded"
       - key: KC_PROXY
         value: edge
       - key: KC_DB
