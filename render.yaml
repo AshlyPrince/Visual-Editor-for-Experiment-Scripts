@@ -12,6 +12,10 @@ services:
     plan: starter  # $7/month - required for Docker
     dockerfilePath: ./Dockerfile.keycloak
     dockerContext: .
+    disk:
+      name: keycloak-data
+      mountPath: /opt/keycloak/data
+      sizeGB: 1
     envVars:
       - key: KEYCLOAK_ADMIN
         value: admin
@@ -27,8 +31,8 @@ services:
         value: edge
       - key: KC_DB
         value: dev-file
-    # Remove health check to allow Keycloak to start without timeout issues
-    # healthCheckPath: /health/ready
+      - key: JAVA_OPTS_APPEND
+        value: "-Djava.net.preferIPv4Stack=true -Xms256m -Xmx512m"
 
   # Backend API Service
   - type: web
