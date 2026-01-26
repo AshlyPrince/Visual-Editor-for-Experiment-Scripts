@@ -12,10 +12,6 @@ services:
     plan: starter  # 512MB RAM - fits in Professional plan
     dockerfilePath: ./Dockerfile.keycloak.simple
     dockerContext: .
-    disk:
-      name: keycloak-data
-      mountPath: /opt/keycloak/data
-      sizeGB: 1
     envVars:
       - key: KEYCLOAK_ADMIN
         value: admin
@@ -44,7 +40,7 @@ services:
       - key: KC_METRICS_ENABLED
         value: "false"
       - key: JAVA_OPTS_APPEND
-        value: "-Xms128m -Xmx384m -XX:MetaspaceSize=64m -XX:MaxMetaspaceSize=128m -XX:+UseSerialGC -Djava.net.preferIPv4Stack=true"
+        value: "-Xms64m -Xmx256m -XX:MetaspaceSize=48m -XX:MaxMetaspaceSize=96m -XX:+UseSerialGC -XX:MaxRAM=400m -Djava.net.preferIPv4Stack=true"
 
   # Backend API Service
   - type: web
