@@ -84,12 +84,14 @@
       "redirectUris": [
         "http://localhost:3001/*",
         "http://localhost:5173/*",
-        "http://localhost:5177/*"
+        "http://localhost:5177/*",
+        "https://*.onrender.com/*"
       ],
       "webOrigins": [
         "http://localhost:3001",
         "http://localhost:5173",
         "http://localhost:5177",
+        "https://*.onrender.com",
         "+"
       ],
       "notBefore": 0,
@@ -108,7 +110,7 @@
         "oauth2.device.authorization.grant.enabled": "false",
         "display.on.consent.screen": "false",
         "backchannel.logout.revoke.offline.tokens": "false",
-        "post.logout.redirect.uris": "http://localhost:3001/*##http://localhost:5173/*##http://localhost:5177/*"
+        "post.logout.redirect.uris": "http://localhost:3001/*##http://localhost:5173/*##http://localhost:5177/*##https://*.onrender.com/*"
       },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
