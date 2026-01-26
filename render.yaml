@@ -4,31 +4,6 @@ databases:
     region: frankfurt
 
 services:
-  # Keycloak Authentication Service
-  - type: web
-    name: visual-editor-keycloak
-    runtime: docker
-    region: frankfurt
-    plan: free
-    dockerfilePath: ./Dockerfile.keycloak
-    dockerContext: .
-    envVars:
-      - key: KEYCLOAK_ADMIN
-        value: admin
-      - key: KEYCLOAK_ADMIN_PASSWORD
-        generateValue: true
-      - key: KC_PROXY
-        value: edge
-      - key: KC_HOSTNAME_STRICT
-        value: "false"
-      - key: KC_HTTP_ENABLED
-        value: "true"
-      - key: KC_HTTP_PORT
-        value: 10000
-      - key: KC_HEALTH_ENABLED
-        value: "true"
-    healthCheckPath: /health/ready
-
   # Backend API Service
   - type: web
     name: visual-editor-backend
@@ -65,7 +40,7 @@ services:
       - key: SESSION_SECRET
         generateValue: true
       - key: PROTECT_ROUTES
-        value: keycloak
+        value: none
       - key: KC_REALM
         value: myrealm
       - key: KC_AUTH_SERVER_URL
