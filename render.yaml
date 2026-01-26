@@ -10,7 +10,7 @@ services:
     runtime: docker
     region: frankfurt
     plan: starter  # $7/month - required for Docker
-    dockerfilePath: ./Dockerfile.keycloak
+    dockerfilePath: ./Dockerfile.keycloak.simple
     dockerContext: .
     disk:
       name: keycloak-data
