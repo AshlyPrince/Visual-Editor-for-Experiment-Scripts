@@ -22,19 +22,16 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-app.get("/health", (_req, res) =>
-  res.json({ status: "ok", time: new Date().toISOString() })
-);
-
-app.get("/test-auth", protect, (req, res) => {
-  res.json({ message: "Auth middleware working", user: req.user });
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok" });
 });
 
 app.get("/db/ping", async (_req, res) => {
   try {
-    res.json({ db: (await dbPing()) ? "up" : "down" });
+    const dbStatus = await dbPing();
+    res.json({ db: dbStatus ? "up" : "down" });
   } catch (e) {
-    res.status(500).json({ db: "down", error: String(e) });
+    res.status(500).json({ db: "down" });
   }
 });
 
@@ -43,30 +40,26 @@ app.get("/auth/check", optionalAuth, (req, res) => {
   res.json({
     authenticated: !!userInfo,
     protection_enabled: config.protection.enabled,
-    user: userInfo,
+    user: userInfo
   });
 });
 
 app.get("/auth/user", protect, (req, res) => {
   const userInfo = getUserInfo(req);
-  if (!userInfo) {
-    return res.status(401).json({ error: "Not authenticated" });
-  }
+  if (!userInfo) return res.status(401).json({ error: "Not authenticated" });
   res.json(userInfo);
 });
 
 async function initializeDatabase() {
   try {
-    const tablesResult = await pool.query(`
+    const result = await pool.query(`
       SELECT COUNT(*) as count
       FROM information_schema.tables 
       WHERE table_schema = 'public' 
       AND table_name IN ('experiments', 'experiment_versions')
     `);
     
-    if (parseInt(tablesResult.rows[0].count) < 2) {
-      console.error('Tables missing. Creating database schema...');
-      
+    if (parseInt(result.rows[0].count) < 2) {
       await pool.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
       await pool.query(`CREATE EXTENSION IF NOT EXISTS "pgcrypto"`);
       
@@ -108,11 +101,9 @@ async function initializeDatabase() {
         CREATE INDEX idx_experiment_versions_experiment_id ON experiment_versions(experiment_id);
         CREATE INDEX idx_experiment_versions_created_at ON experiment_versions(created_at);
       `);
-      
-      console.error('Database schema created successfully.');
     }
   } catch (error) {
-    console.error('Database initialization error:', error.message);
+    console.error('DB init failed:', error.message);
   }
 }
 
@@ -120,18 +111,13 @@ initializeDatabase();
 app.post("/api/experiments", protect, async (req, res) => {
   try {
     const userInfo = getUserInfo(req);
-    
-    if (!userInfo || !userInfo.id) {
-      return res.status(401).json({ 
-        error: 'User authentication required',
-        details: 'No valid user ID found in token'
-      });
+    if (!userInfo?.id) {
+      return res.status(401).json({ error: 'User authentication required' });
     }
     
     const experiment = await experimentService.createExperiment(req.body, userInfo.id);
     res.status(201).json(experiment);
   } catch (error) {
-    console.error('Create experiment error:', error);
     res.status(400).json({ error: error.message });
   }
 });
@@ -140,7 +126,13 @@ app.get("/api/experiments", protect, async (req, res) => {
   try {
     const userInfo = getUserInfo(req);
     const { page, limit, search, category, visibility } = req.query;
-    const options = { page: parseInt(page) || 1, limit: parseInt(limit) || 20, search, category, visibility };
+    const options = { 
+      page: parseInt(page) || 1, 
+      limit: parseInt(limit) || 20, 
+      search, 
+      category, 
+      visibility 
+    };
     
     const experiments = await experimentService.getUserExperiments(userInfo.id, options);
     res.json(experiments);
@@ -153,10 +145,8 @@ app.get("/api/experiments/:id", protect, async (req, res) => {
   try {
     const userInfo = getUserInfo(req);
     const experiment = await experimentService.getExperiment(req.params.id, userInfo.id);
-    
     res.json(experiment);
   } catch (error) {
-    console.error('Error getting experiment:', error);
     res.status(404).json({ error: error.message });
   }
 });
@@ -224,7 +214,7 @@ app.get("/api/experiments/:id/view", async (req, res) => {
     );
 
     if (experiment.rows.length === 0) {
-      return res.status(404).json({ error: "Experiment not found or not publicly accessible" });
+      return res.status(404).json({ error: "Experiment not found" });
     }
 
     res.json(experiment.rows[0]);

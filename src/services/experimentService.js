@@ -7,25 +7,15 @@ class ExperimentService {
       await client.query('BEGIN');
 
       const experimentResult = await client.query(
-        `INSERT INTO experiments (title, created_by)
-         VALUES ($1, $2) RETURNING *`,
+        `INSERT INTO experiments (title, created_by) VALUES ($1, $2) RETURNING *`,
         [data.title, userId]
       );
       const experiment = experimentResult.rows[0];
 
-      const versionNumber = 1;
       const versionResult = await client.query(
         `INSERT INTO experiment_versions (experiment_id, version_number, title, content, html_content, created_by, commit_message)
-         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-        [
-          experiment.id,
-          versionNumber,
-          data.title,
-          data.content || {},
-          data.html_content || null,
-          userId,
-          data.commit_message || 'Initial version'
-        ]
+         VALUES ($1, 1, $2, $3, $4, $5, $6) RETURNING *`,
+        [experiment.id, data.title, data.content || {}, data.html_content || null, userId, data.commit_message || 'Initial version']
       );
       const version = versionResult.rows[0];
 
@@ -56,25 +46,14 @@ class ExperimentService {
     const offset = (page - 1) * limit;
 
     let query = `
-      SELECT 
-        e.id,
-        e.title,
-        e.created_by,
-        e.current_version_id,
-        e.created_at,
-        e.updated_at,
-        e.is_deleted,
-        ev.version_number,
-        ev.content,
-        ev.title as version_title,
-        ev.created_at as version_created_at
+      SELECT e.id, e.title, e.created_by, e.current_version_id, e.created_at, e.updated_at,
+             ev.version_number, ev.content, ev.title as version_title
       FROM experiments e
       LEFT JOIN experiment_versions ev ON e.current_version_id = ev.id
       WHERE e.is_deleted = false
     `;
 
-    let params = [];
-
+    const params = [];
     if (search) {
       query += ` AND e.title ILIKE $${params.length + 1}`;
       params.push(`%${search}%`);
@@ -89,30 +68,15 @@ class ExperimentService {
 
   async getExperiment(experimentId, userId) {
     const result = await pool.query(
-      `SELECT 
-        e.id,
-        e.title,
-        e.created_by,
-        e.current_version_id,
-        e.created_at,
-        e.updated_at,
-        e.is_deleted,
-        ev.version_number,
-        ev.title as version_title,
-        ev.content,
-        ev.html_content,
-        ev.commit_message,
-        ev.created_at as version_created_at
+      `SELECT e.id, e.title, e.created_by, e.current_version_id, e.created_at, e.updated_at,
+              ev.version_number, ev.title as version_title, ev.content, ev.html_content, ev.commit_message
        FROM experiments e
        LEFT JOIN experiment_versions ev ON e.current_version_id = ev.id
        WHERE e.id = $1 AND e.is_deleted = false`,
       [experimentId]
     );
 
-    if (result.rows.length === 0) {
-      throw new Error('Experiment not found');
-    }
-
+    if (!result.rows[0]) throw new Error('Experiment not found');
     return result.rows[0];
   }
 
@@ -121,46 +85,32 @@ class ExperimentService {
     try {
       await client.query('BEGIN');
 
-      const accessCheck = await client.query(
+      const experiment = await client.query(
         `SELECT id, title FROM experiments WHERE id = $1 AND is_deleted = false`,
         [experimentId]
       );
-
-      if (accessCheck.rows.length === 0) {
-        throw new Error('Experiment not found');
-      }
-
-      const experiment = accessCheck.rows[0];
+      if (!experiment.rows[0]) throw new Error('Experiment not found');
 
       const versionResult = await client.query(
-        `SELECT COALESCE(MAX(version_number), 0) + 1 as next_version 
-         FROM experiment_versions WHERE experiment_id = $1`,
+        `SELECT COALESCE(MAX(version_number), 0) + 1 as next_version FROM experiment_versions WHERE experiment_id = $1`,
         [experimentId]
       );
       const versionNumber = versionResult.rows[0].next_version;
 
-      const newVersionResult = await client.query(
+      const newVersion = await client.query(
         `INSERT INTO experiment_versions (experiment_id, version_number, title, content, html_content, commit_message, created_by)
          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-        [
-          experimentId,
-          versionNumber,
-          data.title || experiment.title,
-          data.content,
-          data.html_content || null,
-          data.commit_message || `Version ${versionNumber}`,
-          userId
-        ]
+        [experimentId, versionNumber, data.title || experiment.rows[0].title, data.content, 
+         data.html_content || null, data.commit_message || `Version ${versionNumber}`, userId]
       );
-      const newVersion = newVersionResult.rows[0];
 
       await client.query(
         `UPDATE experiments SET current_version_id = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
-        [newVersion.id, experimentId]
+        [newVersion.rows[0].id, experimentId]
       );
 
       await client.query('COMMIT');
-      return newVersion;
+      return newVersion.rows[0];
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
@@ -170,22 +120,16 @@ class ExperimentService {
   }
 
   async getVersionHistory(experimentId, userId) {
-    const accessCheck = await pool.query(
+    const experiment = await pool.query(
       `SELECT id FROM experiments WHERE id = $1 AND is_deleted = false`,
       [experimentId]
     );
-
-    if (accessCheck.rows.length === 0) {
-      throw new Error('Experiment not found');
-    }
+    if (!experiment.rows[0]) throw new Error('Experiment not found');
 
     const result = await pool.query(
-      `SELECT * FROM experiment_versions 
-       WHERE experiment_id = $1 
-       ORDER BY version_number DESC`,
+      `SELECT * FROM experiment_versions WHERE experiment_id = $1 ORDER BY version_number DESC`,
       [experimentId]
     );
-
     return result.rows;
   }
 
@@ -194,23 +138,17 @@ class ExperimentService {
     try {
       await client.query('BEGIN');
 
-      const accessCheck = await client.query(
+      const experiment = await client.query(
         `SELECT id FROM experiments WHERE id = $1 AND is_deleted = false`,
         [experimentId]
       );
+      if (!experiment.rows[0]) throw new Error('Experiment not found');
 
-      if (accessCheck.rows.length === 0) {
-        throw new Error('Experiment not found');
-      }
-
-      const versionCheck = await client.query(
+      const version = await client.query(
         `SELECT * FROM experiment_versions WHERE id = $1 AND experiment_id = $2`,
         [versionId, experimentId]
       );
-
-      if (versionCheck.rows.length === 0) {
-        throw new Error('Version not found');
-      }
+      if (!version.rows[0]) throw new Error('Version not found');
 
       await client.query(
         `UPDATE experiments SET current_version_id = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
@@ -218,7 +156,7 @@ class ExperimentService {
       );
 
       await client.query('COMMIT');
-      return versionCheck.rows[0];
+      return version.rows[0];
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
@@ -232,24 +170,20 @@ class ExperimentService {
     try {
       await client.query('BEGIN');
 
-      const accessCheck = await client.query(
+      const experiment = await client.query(
         `SELECT id FROM experiments WHERE id = $1 AND is_deleted = false`,
         [experimentId]
       );
+      if (!experiment.rows[0]) throw new Error('Experiment not found');
 
-      if (accessCheck.rows.length === 0) {
-        throw new Error('Experiment not found');
-      }
-
-      const updateResult = await client.query(
-        `UPDATE experiments 
-         SET title = COALESCE($1, title), updated_at = CURRENT_TIMESTAMP
+      const result = await client.query(
+        `UPDATE experiments SET title = COALESCE($1, title), updated_at = CURRENT_TIMESTAMP
          WHERE id = $2 RETURNING *`,
         [data.title, experimentId]
       );
 
       await client.query('COMMIT');
-      return updateResult.rows[0];
+      return result.rows[0];
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
@@ -260,16 +194,12 @@ class ExperimentService {
 
   async deleteExperiment(experimentId, userId) {
     const result = await pool.query(
-      `UPDATE experiments 
-       SET is_deleted = true, updated_at = CURRENT_TIMESTAMP
+      `UPDATE experiments SET is_deleted = true, updated_at = CURRENT_TIMESTAMP
        WHERE id = $1 AND is_deleted = false RETURNING id`,
       [experimentId]
     );
 
-    if (result.rows.length === 0) {
-      throw new Error('Experiment not found');
-    }
-
+    if (!result.rows[0]) throw new Error('Experiment not found');
     return { message: 'Experiment deleted successfully' };
   }
 }

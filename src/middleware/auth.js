@@ -24,8 +24,7 @@ const protect = process.env.PROTECT_ROUTES === 'keycloak'
         req.user = verifyToken(token);
         next();
       } catch (error) {
-        console.error('Token verification error:', error.message);
-        return res.status(401).json({ error: 'Invalid token', details: error.message });
+        return res.status(401).json({ error: 'Invalid token' });
       }
     }
   : (req, res, next) => next();
@@ -44,32 +43,22 @@ const optionalAuth = (req, res, next) => {
   try {
     req.user = verifyToken(token);
   } catch (error) {
-    console.error('Optional auth token verification error:', error.message);
+    // Ignore errors for optional auth
   }
   next();
 };
 
 const getUserInfo = (req) => {
-  if (req.user) {
-    const userId = req.user.sub || req.user.sid || req.user.preferred_username || req.user.email;
-    
-    if (!userId) {
-      console.error('getUserInfo: No valid user identifier found in token', {
-        hasSubject: !!req.user.sub,
-        hasSid: !!req.user.sid,
-        hasPreferredUsername: !!req.user.preferred_username,
-        hasEmail: !!req.user.email
-      });
-    }
-    
-    return {
-      id: userId,
-      username: req.user.preferred_username,
-      email: req.user.email,
-      roles: req.user.realm_access?.roles || [],
-    };
-  }
-  return null;
+  if (!req.user) return null;
+  
+  const userId = req.user.sub || req.user.sid || req.user.preferred_username || req.user.email;
+  
+  return {
+    id: userId,
+    username: req.user.preferred_username,
+    email: req.user.email,
+    roles: req.user.realm_access?.roles || [],
+  };
 };
 
 const hasRole = (req, role) => {
