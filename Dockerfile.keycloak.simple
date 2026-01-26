@@ -12,9 +12,14 @@ ENV KC_DB=dev-file \
     KC_HTTP_ENABLED=true \
     KC_HOSTNAME_STRICT=false \
     KC_PROXY=edge \
+    KC_CACHE=local \
+    KC_METRICS_ENABLED=false \
     KC_LOG_LEVEL=INFO \
     KEYCLOAK_ADMIN=admin
 
-# Use start-dev which doesn't require build step
+# Build Keycloak for production
+RUN /opt/keycloak/bin/kc.sh build
+
+# Use production start command
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
-CMD ["start-dev", "--import-realm", "--http-relative-path=/"]
+CMD ["start", "--http-port=8080", "--proxy=edge", "--import-realm", "--hostname-url=https://visual-editor-keycloak.onrender.com"]

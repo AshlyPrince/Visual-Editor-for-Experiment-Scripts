@@ -9,7 +9,7 @@ services:
     name: visual-editor-keycloak
     runtime: docker
     region: frankfurt
-    plan: standard  # $25/month - 2GB RAM required for Keycloak
+    plan: starter  # $7/month - optimized for 512MB
     dockerfilePath: ./Dockerfile.keycloak.simple
     dockerContext: .
     disk:
@@ -37,8 +37,14 @@ services:
         value: edge
       - key: KC_DB
         value: dev-file
+      - key: KC_CACHE
+        value: local
+      - key: KC_CACHE_STACK
+        value: local
+      - key: KC_METRICS_ENABLED
+        value: "false"
       - key: JAVA_OPTS_APPEND
-        value: "-Djava.net.preferIPv4Stack=true -Xms256m -Xmx768m"
+        value: "-Xms128m -Xmx384m -XX:MaxMetaspaceSize=128m -Djava.net.preferIPv4Stack=true"
 
   # Backend API Service
   - type: web
