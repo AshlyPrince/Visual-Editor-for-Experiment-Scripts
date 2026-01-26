@@ -4,6 +4,31 @@ databases:
     region: frankfurt
 
 services:
+  # Keycloak Authentication Service (Requires Render Pro Plan)
+  - type: web
+    name: visual-editor-keycloak
+    runtime: docker
+    region: frankfurt
+    plan: starter  # $7/month - required for Docker
+    dockerfilePath: ./Dockerfile.keycloak
+    dockerContext: .
+    envVars:
+      - key: KEYCLOAK_ADMIN
+        value: admin
+      - key: KEYCLOAK_ADMIN_PASSWORD
+        generateValue: true
+      - key: KC_HEALTH_ENABLED
+        value: "true"
+      - key: KC_HTTP_ENABLED
+        value: "true"
+      - key: KC_HOSTNAME_STRICT
+        value: "false"
+      - key: KC_PROXY
+        value: edge
+      - key: KC_DB
+        value: dev-file
+    healthCheckPath: /health/ready
+
   # Backend API Service
   - type: web
     name: visual-editor-backend
@@ -40,7 +65,7 @@ services:
       - key: SESSION_SECRET
         generateValue: true
       - key: PROTECT_ROUTES
-        value: none
+        value: keycloak
       - key: KC_REALM
         value: myrealm
       - key: KC_AUTH_SERVER_URL
