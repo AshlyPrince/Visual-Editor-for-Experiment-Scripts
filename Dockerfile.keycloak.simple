@@ -6,7 +6,7 @@ COPY keycloak/myrealm-import.json /opt/keycloak/data/import/
 # Set working directory
 WORKDIR /opt/keycloak
 
-# Environment variables - all in one place
+# Environment variables
 ENV KC_DB=dev-file \
     KC_HEALTH_ENABLED=true \
     KC_HTTP_ENABLED=true \
@@ -17,9 +17,12 @@ ENV KC_DB=dev-file \
     KC_LOG_LEVEL=INFO \
     KEYCLOAK_ADMIN=admin
 
-# Build Keycloak for production
-RUN /opt/keycloak/bin/kc.sh build
+# Build Keycloak for production with optimizations
+RUN /opt/keycloak/bin/kc.sh build --cache=local --cache-stack=local --features=preview
 
-# Use production start command
+# Expose port
+EXPOSE 8080
+
+# Use production start command with health checks enabled
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
-CMD ["start", "--http-port=8080", "--proxy=edge", "--import-realm", "--hostname-url=https://visual-editor-keycloak.onrender.com"]
+CMD ["start", "--http-port=8080", "--proxy=edge", "--import-realm", "--hostname-strict=false", "--hostname-url=https://visual-editor-keycloak.onrender.com"]

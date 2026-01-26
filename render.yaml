@@ -4,12 +4,12 @@ databases:
     region: frankfurt
 
 services:
-  # Keycloak Authentication Service (Requires Render Pro Plan)
+  # Keycloak Authentication Service
   - type: web
     name: visual-editor-keycloak
     runtime: docker
     region: frankfurt
-    plan: starter  # $7/month - optimized for 512MB
+    plan: starter  # 512MB RAM - fits in Professional plan
     dockerfilePath: ./Dockerfile.keycloak.simple
     dockerContext: .
     disk:
@@ -44,7 +44,7 @@ services:
       - key: KC_METRICS_ENABLED
         value: "false"
       - key: JAVA_OPTS_APPEND
-        value: "-Xms128m -Xmx320m -XX:MaxMetaspaceSize=96m -Djava.net.preferIPv4Stack=true -XX:+UseSerialGC"
+        value: "-Xms128m -Xmx384m -XX:MetaspaceSize=64m -XX:MaxMetaspaceSize=128m -XX:+UseSerialGC -Djava.net.preferIPv4Stack=true"
 
   # Backend API Service
   - type: web
