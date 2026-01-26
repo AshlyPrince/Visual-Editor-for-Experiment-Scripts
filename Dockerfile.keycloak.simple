@@ -18,7 +18,7 @@ ENV KC_DB=dev-file \
     KEYCLOAK_ADMIN=admin
 
 # Build Keycloak for production with optimizations
-RUN /opt/keycloak/bin/kc.sh build --cache=local --cache-stack=local --features=preview
+RUN /opt/keycloak/bin/kc.sh build --features=preview
 
 # Expose port
 EXPOSE 8080
