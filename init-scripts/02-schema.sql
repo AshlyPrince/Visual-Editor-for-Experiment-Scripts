@@ -6,6 +6,8 @@ CREATE TABLE experiments (
     title VARCHAR(255) NOT NULL,
     created_by UUID NOT NULL,
     current_version_id INTEGER NULL,
+    current_version_number INTEGER NOT NULL DEFAULT 1,
+    updated_by UUID NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE

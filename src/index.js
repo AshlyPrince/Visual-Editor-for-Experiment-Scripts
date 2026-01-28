@@ -178,6 +178,9 @@ app.post("/api/experiments/:id/versions", protect, async (req, res) => {
     const version = await experimentService.createVersion(req.params.id, req.body, userInfo.id);
     res.status(201).json(version);
   } catch (error) {
+    if (error.statusCode === 409) {
+      return res.status(409).json(error.details);
+    }
     res.status(400).json({ error: error.message });
   }
 });

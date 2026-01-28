@@ -7,8 +7,9 @@ class ExperimentService {
       await client.query('BEGIN');
 
       const experimentResult = await client.query(
-        `INSERT INTO experiments (title, created_by) VALUES ($1, $2) RETURNING *`,
-        [data.title, userId]
+        `INSERT INTO experiments (title, created_by, current_version_number, updated_by) 
+         VALUES ($1, $2, 1, $3) RETURNING *`,
+        [data.title, userId, userId]
       );
       const experiment = experimentResult.rows[0];
 
@@ -68,7 +69,8 @@ class ExperimentService {
 
   async getExperiment(experimentId, userId) {
     const result = await pool.query(
-      `SELECT e.id, e.title, e.created_by, e.current_version_id, e.created_at, e.updated_at,
+      `SELECT e.id, e.title, e.created_by, e.current_version_id, e.current_version_number, 
+              e.updated_by, e.created_at, e.updated_at,
               ev.version_number, ev.title as version_title, ev.content, ev.html_content, ev.commit_message
        FROM experiments e
        LEFT JOIN experiment_versions ev ON e.current_version_id = ev.id
@@ -85,28 +87,58 @@ class ExperimentService {
     try {
       await client.query('BEGIN');
 
+      // Lock the experiment row and get current version
       const experiment = await client.query(
-        `SELECT id, title FROM experiments WHERE id = $1 AND is_deleted = false`,
+        `SELECT id, title, current_version_number, updated_by, updated_at 
+         FROM experiments 
+         WHERE id = $1 AND is_deleted = false 
+         FOR UPDATE`,
         [experimentId]
       );
-      if (!experiment.rows[0]) throw new Error('Experiment not found');
+      
+      if (!experiment.rows[0]) {
+        throw new Error('Experiment not found');
+      }
 
-      const versionResult = await client.query(
-        `SELECT COALESCE(MAX(version_number), 0) + 1 as next_version FROM experiment_versions WHERE experiment_id = $1`,
-        [experimentId]
-      );
-      const versionNumber = versionResult.rows[0].next_version;
+      const currentExperiment = experiment.rows[0];
+      const baseVersion = data.base_version;
 
+      // Check for version conflict
+      if (baseVersion !== undefined && baseVersion !== null && 
+          baseVersion !== currentExperiment.current_version_number) {
+        const error = new Error('VERSION_CONFLICT');
+        error.statusCode = 409;
+        error.details = {
+          error: 'VERSION_CONFLICT',
+          message: 'The experiment has been updated by another user',
+          current_version: currentExperiment.current_version_number,
+          your_version: baseVersion,
+          updated_by: currentExperiment.updated_by,
+          updated_at: currentExperiment.updated_at
+        };
+        throw error;
+      }
+
+      // Calculate next version number
+      const versionNumber = currentExperiment.current_version_number + 1;
+
+      // Create new version
       const newVersion = await client.query(
         `INSERT INTO experiment_versions (experiment_id, version_number, title, content, html_content, commit_message, created_by)
          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-        [experimentId, versionNumber, data.title || experiment.rows[0].title, data.content, 
+        [experimentId, versionNumber, data.title || currentExperiment.title, data.content, 
          data.html_content || null, data.commit_message || `Version ${versionNumber}`, userId]
       );
 
+      // Update experiment with new version
       await client.query(
-        `UPDATE experiments SET current_version_id = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
-        [newVersion.rows[0].id, experimentId]
+        `UPDATE experiments 
+         SET current_version_id = $1, 
+             current_version_number = $2, 
+             updated_by = $3,
+             updated_at = CURRENT_TIMESTAMP 
+         WHERE id = $4`,
+        [newVersion.rows[0].id, versionNumber, userId, experimentId]
       );
 
       await client.query('COMMIT');
