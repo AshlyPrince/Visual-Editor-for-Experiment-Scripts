@@ -93,4 +93,10 @@ services:
         value: teacher
       - key: FRONTEND_URL
         value: https://visual-editor-frontend.onrender.com
+      - key: LLM_API_URL
+        value: https://chat-ai.academiccloud.de/v1
+      - key: LLM_API_KEY
+        value: 43dd955fe1a1430c22359f8c3e855945
+      - key: LLM_MODEL
+        value: llama-3.3-70b-instruct
     healthCheckPath: /health
