@@ -51,8 +51,30 @@ app.get("/auth/user", protect, (req, res) => {
   res.json(userInfo);
 });
 
+let dbInitialized = false;
+let dbInitializing = false;
+
 async function initializeDatabase() {
+  if (dbInitialized || dbInitializing) return;
+  dbInitializing = true;
+  
   try {
+    console.log('[i18n] Starting database initialization...');
+    
+    let retries = 5;
+    while (retries > 0) {
+      try {
+        await dbPing();
+        console.log('[i18n] Database connection established');
+        break;
+      } catch (err) {
+        retries--;
+        if (retries === 0) throw err;
+        console.log(`[i18n] Waiting for database... ${retries} retries left`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+    
     const result = await pool.query(`
       SELECT COUNT(*) as count
       FROM information_schema.tables 
@@ -61,6 +83,7 @@ async function initializeDatabase() {
     `);
     
     if (parseInt(result.rows[0].count) < 2) {
+      console.log('[i18n] Initializing database tables...');
       await pool.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
       await pool.query(`CREATE EXTENSION IF NOT EXISTS "pgcrypto"`);
       
@@ -102,11 +125,40 @@ async function initializeDatabase() {
         CREATE INDEX idx_experiment_versions_experiment_id ON experiment_versions(experiment_id);
         CREATE INDEX idx_experiment_versions_created_at ON experiment_versions(created_at);
       `);
+      console.log('[i18n] Database tables created successfully');
+    } else {
+      console.log('[i18n] Database tables already exist');
     }
+    
+    dbInitialized = true;
+    console.log('[i18n] Database initialization complete');
   } catch (error) {
-    console.error('DB init failed:', error.message);
+    console.error('[i18n] DB init failed:', error.message);
+    dbInitialized = false;
+  } finally {
+    dbInitializing = false;
   }
 }
+
+const ensureDbInitialized = async (req, res, next) => {
+  if (!dbInitialized && !dbInitializing) {
+    await initializeDatabase();
+  }
+  
+  let attempts = 10;
+  while (dbInitializing && attempts > 0) {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    attempts--;
+  }
+  
+  if (!dbInitialized) {
+    return res.status(503).json({ error: 'Database initialization in progress. Please try again.' });
+  }
+  
+  next();
+};
+
+app.use('/api', ensureDbInitialized);
 
 initializeDatabase();
 app.post("/api/experiments", protect, async (req, res) => {
@@ -230,10 +282,22 @@ app.get("/api/experiments/:id/view", async (req, res) => {
 app.post('/api/llm/chat', protect, async (req, res) => {
   try {
     const { model, messages, temperature, max_tokens } = req.body;
+    
+    if (!process.env.LLM_API_KEY) {
+      return res.status(503).json({ 
+        error: 'AI service is temporarily unavailable. Please try again later.',
+        details: 'LLM API key not configured'
+      });
+    }
+    
     const result = await llmService.callLLMWithModel({ model, messages, temperature, max_tokens });
     res.json(result);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('LLM Chat Error:', err);
+    res.status(503).json({ 
+      error: 'AI service is temporarily unavailable. Please try again later.',
+      details: err.message 
+    });
   }
 });
 
