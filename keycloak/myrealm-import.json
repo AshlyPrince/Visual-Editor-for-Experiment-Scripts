@@ -334,6 +334,210 @@
       ],
       "realmRoles": ["user"],
       "clientRoles": {}
+    },
+    {
+      "username": "student9",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "student9@example.com",
+      "firstName": "Student",
+      "lastName": "Nine",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Student@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"],
+      "clientRoles": {}
+    },
+    {
+      "username": "student10",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "student10@example.com",
+      "firstName": "Student",
+      "lastName": "Ten",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Student@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"],
+      "clientRoles": {}
+    },
+    {
+      "username": "student11",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "student11@example.com",
+      "firstName": "Student",
+      "lastName": "Eleven",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Student@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"],
+      "clientRoles": {}
+    },
+    {
+      "username": "student12",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "student12@example.com",
+      "firstName": "Student",
+      "lastName": "Twelve",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Student@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"],
+      "clientRoles": {}
+    },
+    {
+      "username": "student13",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "student13@example.com",
+      "firstName": "Student",
+      "lastName": "Thirteen",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Student@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"],
+      "clientRoles": {}
+    },
+    {
+      "username": "student14",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "student14@example.com",
+      "firstName": "Student",
+      "lastName": "Fourteen",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Student@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"],
+      "clientRoles": {}
+    },
+    {
+      "username": "student15",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "student15@example.com",
+      "firstName": "Student",
+      "lastName": "Fifteen",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Student@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"],
+      "clientRoles": {}
+    },
+    {
+      "username": "student16",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "student16@example.com",
+      "firstName": "Student",
+      "lastName": "Sixteen",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Student@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"],
+      "clientRoles": {}
+    },
+    {
+      "username": "student17",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "student17@example.com",
+      "firstName": "Student",
+      "lastName": "Seventeen",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Student@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"],
+      "clientRoles": {}
+    },
+    {
+      "username": "student18",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "student18@example.com",
+      "firstName": "Student",
+      "lastName": "Eighteen",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Student@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"],
+      "clientRoles": {}
+    },
+    {
+      "username": "student19",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "student19@example.com",
+      "firstName": "Student",
+      "lastName": "Nineteen",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Student@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"],
+      "clientRoles": {}
+    },
+    {
+      "username": "student20",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "student20@example.com",
+      "firstName": "Student",
+      "lastName": "Twenty",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Student@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"],
+      "clientRoles": {}
     }
   ]
 }
