@@ -87,7 +87,6 @@ class ExperimentService {
     try {
       await client.query('BEGIN');
 
-      // Lock the experiment row and get current version
       const experiment = await client.query(
         `SELECT id, title, current_version_number, updated_by, updated_at 
          FROM experiments 
@@ -103,7 +102,6 @@ class ExperimentService {
       const currentExperiment = experiment.rows[0];
       const baseVersion = data.base_version;
 
-      // Check for version conflict
       if (baseVersion !== undefined && baseVersion !== null && 
           baseVersion !== currentExperiment.current_version_number) {
         const error = new Error('VERSION_CONFLICT');
@@ -119,10 +117,8 @@ class ExperimentService {
         throw error;
       }
 
-      // Calculate next version number
       const versionNumber = currentExperiment.current_version_number + 1;
 
-      // Create new version
       const newVersion = await client.query(
         `INSERT INTO experiment_versions (experiment_id, version_number, title, content, html_content, commit_message, created_by)
          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
@@ -130,7 +126,6 @@ class ExperimentService {
          data.html_content || null, data.commit_message || `Version ${versionNumber}`, userId]
       );
 
-      // Update experiment with new version
       await client.query(
         `UPDATE experiments 
          SET current_version_id = $1, 

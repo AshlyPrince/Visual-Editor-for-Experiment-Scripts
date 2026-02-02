@@ -59,18 +59,14 @@ async function initializeDatabase() {
   dbInitializing = true;
   
   try {
-    console.log('[i18n] Starting database initialization...');
-    
     let retries = 5;
     while (retries > 0) {
       try {
         await dbPing();
-        console.log('[i18n] Database connection established');
         break;
       } catch (err) {
         retries--;
         if (retries === 0) throw err;
-        console.log(`[i18n] Waiting for database... ${retries} retries left`);
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
@@ -83,7 +79,6 @@ async function initializeDatabase() {
     `);
     
     if (parseInt(result.rows[0].count) < 2) {
-      console.log('[i18n] Initializing database tables...');
       await pool.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
       await pool.query(`CREATE EXTENSION IF NOT EXISTS "pgcrypto"`);
       
@@ -125,15 +120,10 @@ async function initializeDatabase() {
         CREATE INDEX idx_experiment_versions_experiment_id ON experiment_versions(experiment_id);
         CREATE INDEX idx_experiment_versions_created_at ON experiment_versions(created_at);
       `);
-      console.log('[i18n] Database tables created successfully');
-    } else {
-      console.log('[i18n] Database tables already exist');
     }
     
     dbInitialized = true;
-    console.log('[i18n] Database initialization complete');
   } catch (error) {
-    console.error('[i18n] DB init failed:', error.message);
     dbInitialized = false;
   } finally {
     dbInitializing = false;
@@ -293,7 +283,6 @@ app.post('/api/llm/chat', protect, async (req, res) => {
     const result = await llmService.callLLMWithModel({ model, messages, temperature, max_tokens });
     res.json(result);
   } catch (err) {
-    console.error('LLM Chat Error:', err);
     res.status(503).json({ 
       error: 'AI service is temporarily unavailable. Please try again later.',
       details: err.message 

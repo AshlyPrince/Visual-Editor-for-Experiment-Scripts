@@ -43,7 +43,6 @@ const optionalAuth = (req, res, next) => {
   try {
     req.user = verifyToken(token);
   } catch (error) {
-    // Ignore errors for optional auth
   }
   next();
 };
