@@ -4,12 +4,11 @@ databases:
     region: frankfurt
 
 services:
-  # Keycloak Authentication Service
   - type: web
     name: visual-editor-keycloak
     runtime: docker
     region: frankfurt
-    plan: standard  # 2GB RAM - required for Keycloak ($25/month)
+    plan: standard
     dockerfilePath: ./Dockerfile.keycloak.simple
     dockerContext: .
     envVars:
@@ -42,7 +41,6 @@ services:
       - key: JAVA_OPTS_APPEND
         value: "-Xms256m -Xmx768m -XX:MetaspaceSize=96m -XX:MaxMetaspaceSize=256m -XX:+UseG1GC -Djava.net.preferIPv4Stack=true"
 
-  # Backend API Service
   - type: web
     name: visual-editor-backend
     runtime: node
