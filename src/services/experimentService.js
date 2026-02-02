@@ -47,8 +47,8 @@ class ExperimentService {
     const offset = (page - 1) * limit;
 
     let query = `
-      SELECT e.id, e.title, e.created_by, e.current_version_id, e.created_at, e.updated_at,
-             ev.version_number, ev.content, ev.title as version_title
+      SELECT e.id, e.created_by, e.current_version_id, e.created_at, e.updated_at,
+             ev.version_number, ev.content, ev.title
       FROM experiments e
       LEFT JOIN experiment_versions ev ON e.current_version_id = ev.id
       WHERE e.is_deleted = false
@@ -56,7 +56,7 @@ class ExperimentService {
 
     const params = [];
     if (search) {
-      query += ` AND e.title ILIKE $${params.length + 1}`;
+      query += ` AND ev.title ILIKE $${params.length + 1}`;
       params.push(`%${search}%`);
     }
 
@@ -69,9 +69,9 @@ class ExperimentService {
 
   async getExperiment(experimentId, userId) {
     const result = await pool.query(
-      `SELECT e.id, e.title, e.created_by, e.current_version_id, e.current_version_number, 
+      `SELECT e.id, e.created_by, e.current_version_id, e.current_version_number, 
               e.updated_by, e.created_at, e.updated_at,
-              ev.version_number, ev.title as version_title, ev.content, ev.html_content, ev.commit_message
+              ev.version_number, ev.title, ev.content, ev.html_content, ev.commit_message
        FROM experiments e
        LEFT JOIN experiment_versions ev ON e.current_version_id = ev.id
        WHERE e.id = $1 AND e.is_deleted = false`,
